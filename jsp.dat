@@ -1,0 +1,18 @@
+#Suspicious Pattern
+S:Runtime.getRuntime:Runtime.getRuntime\(\
+S:runtime.exec:runtime\.exec\(
+S:getRuntime().exec:getRuntime\(\)\.exec\(
+S:/bin/sh:\/bin\/sh
+
+#Malicious Pattern
+M:JFileMan:JFileMan
+M:JFolder:JFolder
+M:JFolder:hacker666
+M:backdoor.jsp:backdoor\.jsp
+M:jspreverse.html:jspreverse\.html
+M:jsp web shell:jsp web shell
+M:cmd.jsp:cmd\.jsp
+M:jsp File browser:jsp File browser
+M:JspWebshell:JspWebshell
+M:JSP Backdoor:JSP Backdoor
+M:Webshell:Webshell
