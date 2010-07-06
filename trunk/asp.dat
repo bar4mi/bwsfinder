@@ -1,0 +1,21 @@
+#Normal Pattern
+S:Wscript.Shell:Wscript\.Shell\(
+S:Wscript.Run:Wscript\.Run\(
+S:Wscript.Exec:Wscript\.Exec\(
+S:Shell.Application:Shell\.Application\(
+S:ShellExecute:ShellExecute\(
+S:Wscript.shell:RegRead\(
+S:VBScript.Encode:VBScript\.Encode\(
+S:Cmd.exe:Cmd\.exe
+
+#Malicious Pattern
+M:ShellExecute:She\"&x&\"ll\.Appl\"&x&\"ication
+M:WScript:WScr\"&x&\"ipt\.Shell
+M:Chinese Lang:gb2312
+M:Execute Session:execute *\(? *session
+M:Execute Request:execute *\(? *request
+M:Eval Request:eval *\(? *request
+M:Common Pattern:execute *\(? *session
+M:lake2:lake2
+M:hak520:hack520
+M:lcxMacros:lcxMacros
