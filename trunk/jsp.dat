@@ -1,19 +1,36 @@
 #Suspicious Pattern
-S:Runtime.getRuntime:Runtime.getRuntime\(\
-S:runtime.exec:runtime\.exec\(
-S:getRuntime().exec:getRuntime\(\)\.exec\(
-S:/bin/sh:\/bin\/sh
+S:Runtime.getRuntime:Runtime.getRuntime(
+S:runtime.exec:runtime.exec(
+S:getRuntime().exec:getRuntime().exec(
+S:/bin/sh:/bin/sh
+S:Chinese Character Set 1:gb2312
+S:Chinese Character Set 2:GBK
 
 #Malicious Pattern
 M:JFileMan:JFileMan
-M:JFolder:JFolder
-M:JFolder:hacker666
-M:backdoor.jsp:backdoor\.jsp
-M:jspreverse.html:jspreverse\.html
+M:JFolder 1:JFolder
+M:JFolder 2:hacker666
+M:backdoor.jsp:backdoor.jsp
+M:jspreverse.html:jspreverse.html
 M:jsp web shell:jsp web shell
-M:cmd.jsp:cmd\.jsp
+M:cmd.jsp:cmd.jsp
 M:jsp File browser:jsp File browser
 M:JspWebshell:JspWebshell
 M:JSP Backdoor:JSP Backdoor
 M:Webshell:Webshell
 M:pwnshell:pwnshell
+M:JspSpy:JspSpy
+M:JspDo:JspDo
+M:JspDo:Xiao
+M:darkst shell 1:jshell
+M:darkst shell 2:darkst
+M:Jsp File Admin 1:Jsp File Admin
+M:Jsp File Admin 2:safe.yi.org
+M:Hmilyld Shell 1:Hmilyld
+M:Hmilyld Shell 2:danmo
+M:Hmilyld Shell 3:www.hmilyld.cn
+M:hack520 shell:hack520
+M:xIXRbE.jspx:xIXRbE
+M:fuckjp:fuckjp
+M:hkmjj:hkmjj
+M:yoco shell:yoco
