@@ -1,28 +1,25 @@
 #!/usr/bin/perl -w
 # =======================================================================
-# =  Bar4mi WebShell Finder Ver. 0.5 (Simon Ryeo, bar4mi@gmail.com)     =
+# =  Bar4mi WebShell Finder Ver. 0.6 (Simon Ryeo, bar4mi@gmail.com)     =
 # =======================================================================
 #
-# The main purpose of this program is to find a webshell uploaded by 
-# a hacker or malicious internal user. 
+# The main purpose of this program is to find a webshell uploaded by
+# a hacker or malicious internal user.
 #
 # License: GPLv3
 # Current Supported Language: PHP, ASP, JSP
 # HomePage: http://bar4mi.tistory.com
 # Start Date: 02/12/2010
-# Last Modified Date: 07/01/2010
+# Last Modified Date: 08/15/2014
 # =======================================================================
-# To Do. 
-#  1. improve it's execution speed (not matching a line)
-#  2. provide a option for size (OK!)
-#  3. provide a options for excluding file extentions (OK!)
-#  4. print results ASAP (OK!)
-#  5. print execution time (OK!)
-#  6. check only text file (OK!)
-#  7. reformat printed time for fingerprint (OK!)
-#  8. print current progress without any additional module (OK!)
+# Release Notes
+#  1. Added the 'all' option to check all types(php, asp, jsp) in the web directory
+#     as tkpark@KERIS's request. 
+#  2. Fixed the pattern definitions (eliminated back slash charaters,
+#     Added number to distinguish definitions)
+#  3. Updated some web shell patterns which were provied by tkpark@KERIS
 # =======================================================================
- 
+
 # ==================
 # = Define modules =
 # ==================
@@ -40,9 +37,9 @@ use IO::Handle;
 # 	Term::ProgressBar->import();
 # };
 # if ($@) {
-# 	# print "Need to install Term::ProgressBar\r\n";
+# 	# print "Need to install Term::ProgressBar\n";
 # 	# 	exit();
-# 	
+#
 # }
 
 # ====================
@@ -52,15 +49,15 @@ use constant TRUE => 1;
 use constant FALSE => 0;
 use constant DEBUG => 1;
 use constant EXPEXT => "\\/|\\.(jpg|gif|png|ico|xml|swf|css|doc|pdf|ppt|xls|zip|tar|tz|gz|rar|exe)\$";
-use constant PHPEXT => "\\.(php|php4|html|htm|phps|inc|ph|pthml|php5|php3)*\$";
-use constant ASPEXT => "\\.(asp|apsx|cer|asa|html|htm)*\$";
-use constant JSPEXT => "\\.(jsp)*\$";
+use constant PHPEXT => "php|php4|html|htm|phps|inc|ph|pthml|php5|php3";
+use constant ASPEXT => "asp|apsx|cer|asa|html|htm";
+use constant JSPEXT => "jsp";
 use constant MAXSIZE => 100;
 
 # ===========================
 # = Define global variables =
 # ===========================
-my $s_ver = "0.5";
+my $s_ver = "0.6";
 my %option = ();
 my ($s_webdir, $s_type, $s_ext, $s_mode, $s_size, @s_exclude);		# option variables
 my (@s_files, $s_file);					# valid files to match
@@ -69,7 +66,7 @@ my (@s_result, @m_result, $result, @f_result);		# results
 my ($m_time, $c_time);								# time variable
 my $f_cnt = 0;
 my $t_file = 0;
-my $output;											# store results 
+my $output;											# store results
 my $r_file;											# filename to store result
 my $e_time;								# Execution time
 my $progress;							# progress
@@ -80,46 +77,46 @@ my $p_cnt = 0;							# progress count
 # ====================
 # Print program header
 sub print_header {
-	print "#"x80 . "\r\n";
-	print "#" . " "x78 . "#\r\n";
-	print "#       Bar4mi WebShell Finder Ver." . $s_ver . " (Simon Ryeo, bar4mi\@gmail.com)          #\r\n";
-	print "#" . " "x78 . "#\r\n";
-	print "#"x80 . "\r\n";
+	print "#"x80 . "\n";
+	print "#" . " "x78 . "#\n";
+	print "#       Bar4mi WebShell Finder Ver." . $s_ver . " (Simon Ryeo, bar4mi\@gmail.com)          #\n";
+	print "#" . " "x78 . "#\n";
+	print "#"x80 . "\n";
 }
 
 # print program arguments
 sub print_input {
-	print ">>> Directory: " . $s_webdir . "\r\n";
+	print ">>> Directory: " . $s_webdir . "\n";
 	print ">>> Mode: ";
-	
+
 	if ($s_mode eq "w") {
-		print "Find Webshells\r\n";
+		print "Find Webshells\n";
 	} elsif ($s_mode eq "l") {
-		print "Print file list to check\r\n"
+		print "Print file list to check\n"
 	} else {
-		print "Check fingerprint\r\n"
+		print "Check fingerprint\n"
 	}
-	
-	print ">>> Max File Size: <= " . $s_size / 1024 . " Bytes\r\n";
-	
+
+	print ">>> Max File Size: <= " . $s_size / 1024 . " Bytes\n";
+
 }
 
 # Print help infomation
 sub print_help {
 	print_header();
-	print "Usage: $0 [options] -m [mode] -t [type] -d [Webroot Directory]\r\n";
-	print "[Option]\r\n";
-	print "\t-d [Webroot]: *ESSENTIAL* the path that web files exist\r\n";
-	print "\t-t [type]: *ESSENTIAL* a type of language\r\n";
-	print "\t-m [w/l/f] *ESSENTIAL*\r\n";
-	print "\t\tw: only check webshells\r\n";
-	print "\t\tl: only print file list to check\r\n";
-	print "\t\tf: only print a fingerprint\r\n";
-	print "\t-r [filename]: save a result to file\r\n";
-	print "\t-e: enable this to search only defined extension files\r\n";
-	print "\t-s [max size(KB)]: limit max file size(default 100KB)\r\n";
-	print "\t-x [Directory]: Directory lists to exclude(separated by comma)\r\n";
-	print "\r\n";
+	print "Usage: $0 [options] -m [mode] -t [type] -d [Webroot Directory]\n";
+	print "[Option]\n";
+	print "\t-d [Webroot]: *ESSENTIAL* the path that web files exist\n";
+	print "\t-t [type]: *ESSENTIAL* (php, jsp, asp, all)\n";
+	print "\t-m [w/l/f] *ESSENTIAL*\n";
+	print "\t\tw: only check webshells\n";
+	print "\t\tl: only print file list to check\n";
+	print "\t\tf: only print a fingerprint\n";
+	print "\t-r [filename]: save a result to file\n";
+	print "\t-e: enable this to search only defined extension files\n";
+	print "\t-s [max size(KB)]: limit max file size(default 100KB)\n";
+	print "\t-x [Directory]: Directory lists to exclude(separated by comma)\n";
+	print "\n";
 }
 
 # Print progress
@@ -129,10 +126,10 @@ sub print_progress {
 	my $c_cnt = $_[2];		# Current Count
 	# my $c_num = $_[3];		# Previous Number
 	my $c_stat; 			# Current Progress Status
-	
+
 	$c_stat = int(($c_cnt/$t_cnt) * 100);
-	# print "\r\n\$t_cnt " . $t_cnt . " : \$t_num " . $t_num . " : \$c_cnt " . $c_cnt . " : \$c_stat " . $c_stat . "\r\n";
-	
+	# print "\n\$t_cnt " . $t_cnt . " : \$t_num " . $t_num . " : \$c_cnt " . $c_cnt . " : \$c_stat " . $c_stat . "\n";
+
 	# Print Start
 	if ($c_cnt == 0) {
 		print "[";
@@ -142,12 +139,12 @@ sub print_progress {
 		print "#";
 		$t_num++;
 	}
-	
+
 	# Print End
 	if ($t_cnt == ($c_cnt+1)) {
-		print "#]\r\n";
+		print "#]\n";
 	}
-	
+
 	return $t_num;
 }
 
@@ -161,7 +158,7 @@ sub get_options {
 
 		# Check a type of program language
 		# Currently it only supports PHP.
-		if ($option{t} =~ /(php|asp|jsp)/) {
+		if ($option{t} =~ /(php|asp|jsp|all)/) {
 			$s_type = $option{t};
 		}
 		else {
@@ -174,8 +171,8 @@ sub get_options {
 		}
 
 		# Get whether to find all valid files or related files
-		$s_ext = $option{e}; 
-		
+		$s_ext = $option{e};
+
 		# Get directory list to exclude
 		if (defined($option{x})) {
 			@s_exclude = split(',', $option{x});
@@ -184,16 +181,16 @@ sub get_options {
 		# Get the mode value
 		if ($option{m} ne "") {
 			$s_mode = $option{m};
-		} 
+		}
 		else {
 			return FALSE;
 		}
-		
+
 		# Get max file size
 		if (defined($option{s})) {
 			if ($option{s} =~ /^\d+$/) {
 				$s_size = $option{s} * 1024;
-			} 
+			}
 			else {
 				return FALSE;
 			}
@@ -201,8 +198,8 @@ sub get_options {
 		else {
 			# default max size is 1MB.
 			$s_size = MAXSIZE * 1024;
-		}		
-		
+		}
+
 		return TRUE;
 	}
 	else {
@@ -216,21 +213,21 @@ sub check_file {
 	my $f_fname = $File::Find::name;
 	my $extpat;
 	my $check;
-	
+
 	# Except files in the except list
 	if(defined($option{x})) {
 		$check = TRUE;
 		foreach my $x (@s_exclude) {
 			if($f_fname =~ /$x/) {
 				$check = FALSE;
-			} 
+			}
 		}
-		
+
 		if(!$check) {
 			return;
 		}
 	}
-	
+
 	# print if it is directory
 	if (-d $f_fname) {
 		print "\rReading from " . $f_fname;
@@ -238,10 +235,10 @@ sub check_file {
 		foreach (1 .. length($f_fname)) {
 		  print "\b";
 		  # sleep(2);
-		}		
+		}
 	}
-	
-	
+
+
 	# Only files && Eliminate unnessary files (Just only check a text file)
 	if (!$s_ext && $s_mode ne "f") {
 		if (-f $f_fname && -T $f_fname && $f_fname !~ /EXPEXT/i) {
@@ -252,16 +249,19 @@ sub check_file {
 		# Get valid extensions
 		if ($s_type =~ /php/i) {
 			$extpat = PHPEXT;
-		} 
+		}
 		elsif ($s_type =~ /asp/i) {
 			$extpat = ASPEXT;
 		}
 		elsif ($s_type =~ /jsp/i) {
 			$extpat = JSPEXT;
 		}
+		elsif ($s_type =~ /all/i) {
+			$extpat = PHPEXT & "|" &  ASPEXT & "|" & JSPEXT;
+		}
 
 		# Get valid files related with current type
-		if (-f $f_fname && -T $f_fname && $f_fname =~ /$extpat/i) {
+		if (-f $f_fname && -T $f_fname && $f_fname =~ /\\.($extpat)*\$/i) {
 			push @s_files, $f_fname;
 		}
 	}
@@ -277,15 +277,15 @@ sub get_files {
 
 	if (-d $g_dir) {
 		find(\&check_file, $g_dir);
-		print "\r\n";
+		print "\n";
 	}
 	else {
-		print STDERR "Can't open $g_dir!\r\n";
+		print STDERR "Can't open $g_dir!\n";
 		exit();
 	}
 }
 
-# Return a search result 
+# Return a search result
 sub search_suspicious_func {
 	my ($r_key, $r_value);
 	my $p_num = 0;
@@ -294,21 +294,21 @@ sub search_suspicious_func {
 	# my $f_content;							# the content read from a file
 
 	# local $/=undef;
-	
+
 	open(FH, "< $fname")
 		or print STDERR "Unable to open " . $fname . "!";
 
 	# $f_content = <FH>;
-	# 
+	#
 	# # Verify known patternslocal
 	# while (($r_key, $r_value) = each(%m_pattern)) {
-	# 	# print "r_key: $r_key\r\n";
+	# 	# print "r_key: $r_key\n";
 	# 	if ($f_content =~ m/\Q$r_value\E/ix) {
 	# 		push @m_result, [$r_key, $fname];
 	# 		last;
 	# 	}
 	# }
-	# 
+	#
 	# # Verify suspicious function patterns
 	# if ($s_mode ne "w" && $p_flag eq FALSE && keys %s_pattern) {
 	# 	while (($r_key, $r_value) = each(%s_pattern)) {
@@ -316,7 +316,7 @@ sub search_suspicious_func {
 	# 			push @s_result, [$r_key, $fname];
 	# 			last;
 	# 		}
-	# 	}		
+	# 	}
 	# }
 
 	# This method matchs the string by a line
@@ -331,7 +331,7 @@ sub search_suspicious_func {
 				last;
 			}
 		}
-	
+
 		# Verify suspicious func
 		if (!$s_mode ne "w" && $p_flag ne TRUE && keys %s_pattern) {
 			while (($r_key, $r_value) = each(%s_pattern)) {
@@ -343,13 +343,13 @@ sub search_suspicious_func {
 				}
 			}
 		}
-	
+
 		if ($p_flag eq TRUE) {
 			last;
 		}
-	
+
 	}
-	
+
 	close(FH);
 }
 
@@ -358,7 +358,7 @@ sub get_suspicious_func
 {
 	my @temp;
 
-	open(REGP, "< $_[0]") 
+	open(REGP, "< $_[0]")
 		or die("Unable to open $s_type pattern file");
 
 	while(<REGP>){
@@ -385,17 +385,17 @@ sub get_suspicious_func
 sub get_fingerprint
 {
 	my $f_name = $_[0];
-	my ($f_mtime, $f_ctime, $f_atime); 
+	my ($f_mtime, $f_ctime, $f_atime);
 	my $f_digest;
 	my @tmp;
 
 	open(FP, "< $f_name")
 		or die("Unable to open $f_name!");
-	
+
 	# get access time
 	@tmp = ();
 	@tmp = localtime(stat($f_name)->atime);
-	$f_atime = sprintf("%4d/%02d/%02d %02d:%02d:%02d", $tmp[5] + 1900, $tmp[4], $tmp[3], $tmp[2], $tmp[1], $tmp[0]); 
+	$f_atime = sprintf("%4d/%02d/%02d %02d:%02d:%02d", $tmp[5] + 1900, $tmp[4], $tmp[3], $tmp[2], $tmp[1], $tmp[0]);
 	# get last modified time
 	@tmp = ();
 	@tmp = localtime(stat($f_name)->mtime);
@@ -410,49 +410,49 @@ sub get_fingerprint
 #$f_digest = Digest::MD5->new->addfile(*FP)->b64digest;
 	$f_digest = Digest::MD5->new->addfile(*FP)->hexdigest;
 
-#print "$f_name : $f_mtime : $f_ctime : $f_digest\r\n" if DEBUG;
+#print "$f_name : $f_mtime : $f_ctime : $f_digest\n" if DEBUG;
 	push @f_result, [$f_name, $f_ctime, $f_mtime, $f_atime, $f_digest];
-	
+
 	close(FP);
 }
 
 sub process_result {
 	if (@f_result) {
-		$output = sprintf("%s\r\n", "-"x80);
-		$output .= sprintf(" File Fingerprints => %d files.\r\n", $#f_result);;
-		$output .= sprintf("%s\r\n", "-"x80);
-		$output .= sprintf("\t* Hash: MD5 value of a file\r\n\t* Ctime: Inode Change Time\r\n\t* Mtime: Modify Time\r\n\t* Atime: Access Time\r\n");
-		$output .= sprintf("%s\r\n", "-"x80);
-		$output .= sprintf("========== Hash (MD5) ========== | ====== CTime ====== | ====== MTime ====== | ====== ATime ====== | == Full Path File Name ==> \r\n");
+		$output = sprintf("%s\n", "-"x80);
+		$output .= sprintf(" File Fingerprints => %d files.\n", $#f_result);;
+		$output .= sprintf("%s\n", "-"x80);
+		$output .= sprintf("\t* Hash: MD5 value of a file\n\t* Ctime: Inode Change Time\n\t* Mtime: Modify Time\n\t* Atime: Access Time\n");
+		$output .= sprintf("%s\n", "-"x80);
+		$output .= sprintf("========== Hash (MD5) ========== | ====== CTime ====== | ====== MTime ====== | ====== ATime ====== | == Full Path File Name ==> \n");
 		#                   936d78d7fd5bb305edfa6ac54eb1aca2 | 2010/02/28 16:29:01 | 2009/01/14 20:34:26 -> /Volumes/BK/Finded Webshell/sd.asa
 
 		foreach $result (@f_result) {
-			$output .= sprintf("%22s | %s | %s | %s | %s\r\n", $result->[4], $result->[1], $result->[2], $result->[3], $result->[0]);
+			$output .= sprintf("%22s | %s | %s | %s | %s\n", $result->[4], $result->[1], $result->[2], $result->[3], $result->[0]);
 		}
 	}
 
 	if (@m_result) {
-		$output .= sprintf("%s\r\n", "-"x80);
-		$output .= sprintf(" Malicious Files => %d files\r\n", $#m_result + 1);
-		$output .= sprintf("%s\r\n", "-"x80);
+		$output .= sprintf("%s\n", "-"x80);
+		$output .= sprintf(" Malicious Files => %d files\n", $#m_result + 1);
+		$output .= sprintf("%s\n", "-"x80);
 
 		foreach $result (@m_result) {
-			$output .= sprintf("%22s: %4s line -> %s\r\n\t%s\r\n", $result->[0], $result->[2], $result->[1], $result->[3]);
-			# $output .= sprintf("%22s: %s\r\n", $result->[0], $result->[1]);
+			$output .= sprintf("%22s: %4s line -> %s\n\t%s\n", $result->[0], $result->[2], $result->[1], $result->[3]);
+			# $output .= sprintf("%22s: %s\n", $result->[0], $result->[1]);
 		}
 	}
 
 	if (@s_result) {
-		$output .= sprintf("\r\n");
-		$output .= sprintf("%s\r\n", "-"x80);
-		$output .= sprintf(" Suspicious Files(These files need to investigate directly.) => %d files.\r\n", $#s_result);
-		$output .= sprintf("  - system(), exec(), passtrhu(): used to execute system commands\r\n");
-		$output .= sprintf("  - base64_decode(): used to bypass the pattern detection\r\n");
-		$output .= sprintf("%s\r\n", "-"x80);
+		$output .= sprintf("\n");
+		$output .= sprintf("%s\n", "-"x80);
+		$output .= sprintf(" Suspicious Files(These files need to investigate directly.) => %d files.\n", $#s_result);
+		$output .= sprintf("  - system(), exec(), passtrhu(): used to execute system commands\n");
+		$output .= sprintf("  - base64_decode(): used to bypass the pattern detection\n");
+		$output .= sprintf("%s\n", "-"x80);
 
 		foreach $result (@s_result) {
-			$output .= sprintf("%22s: %4s line -> %s\r\n\t%s\r\n", $result->[0], $result->[2], $result->[1], $result->[3]);
-			# $output .= sprintf("%22s: %s\r\n", $result->[0], $result->[1]);
+			$output .= sprintf("%22s: %4s line -> %s\n\t%s\n", $result->[0], $result->[2], $result->[1], $result->[3]);
+			# $output .= sprintf("%22s: %s\n", $result->[0], $result->[1]);
 		}
 	}
 
@@ -465,11 +465,11 @@ sub process_result {
 				or die("Unable to write result to $r_file!");
 
 			print RF $output;
-			print "\r\nResults saved to " . $r_file . ".\r\n";
+			print "\nResults saved to " . $r_file . ".\n";
 		}
-	} 
+	}
 	elsif ($s_mode eq "w") {
-		print "No result.\r\n\r\n";
+		print "No result.\n\n";
 	}
 
 }
@@ -486,24 +486,31 @@ print_header();
 print_input();
 
 # Get detection patterns for each language
-print ">>> Reading patterns\r\n";
-get_suspicious_func("$s_type.dat");
+print ">>> Reading patterns\n";
+if ($s_type =~ /all/i) {
+	get_suspicious_func("php.dat");
+	get_suspicious_func("asp.dat");
+	get_suspicious_func("jsp.dat");
+}
+else {
+	get_suspicious_func("$s_type.dat");
+}
 
 # Get valid files to detect suspicious pattern
-print ">>> Reading file list\r\n";
+print ">>> Reading file list\n";
 $|=1;
 get_files($s_webdir);
 
 # Print the exclude directories
 if(defined($option{x})) {
-	print ">>> Exclude Drectory:\r\n";	
+	print ">>> Exclude Drectory:\n";
 	foreach my $x (@s_exclude) {
-		print "    " . $x . "\r\n";
+		print "    " . $x . "\n";
 	}
 }
 
 # Verify the input and permission are correct
-print ">>> Checking files\r\n";
+print ">>> Checking files\n";
 if (!@s_files) {
 	print "Please verify the directory path or permission!";
 	exit();
@@ -511,8 +518,8 @@ if (!@s_files) {
 
 $t_file = $#s_files + 1;
 
-# print "### Directory: " . $s_webdir . "\r\n";
-# print "### Total Files in the directory: " . $t_file . "\r\n\r\n";
+# print "### Directory: " . $s_webdir . "\n";
+# print "### Total Files in the directory: " . $t_file . "\n\n";
 
 # $progress = Term::ProgressBar->new($t_file);
 $progress = 0;
@@ -527,7 +534,7 @@ for $s_file (@s_files){
 		if (-s $s_file <= $s_size) {
 			if ($s_mode eq "l") {
 				++$f_cnt;
-				printf("%4s: %s\r\n", $f_cnt, $s_file);
+				printf("%4s: %s\n", $f_cnt, $s_file);
 			}
 			elsif ($s_mode eq "f") {
 				get_fingerprint($s_file);
@@ -537,26 +544,26 @@ for $s_file (@s_files){
 			}
 		}
 	}
-	
+
 	if ($s_mode ne "l") {
 		$progress = print_progress($t_file, $progress, $p_cnt);
 		$p_cnt++;
 		# $progress->update($p_cnt);
 	}
-	
+
 }
 
 # print & store results
 process_result();
 
 if ($s_mode eq "l") {
-	print "\r\n-Total related files: " . $f_cnt . "\r\n";
+	print "\n-Total related files: " . $f_cnt . "\n";
 }
 
 # get the execution time
 $e_time = time() - $^T;
 # print "time: " . time() . "start: " . $^T;
-print ">>> Execution Time: " . $e_time . " secs\r\n\r\n";
+print ">>> Execution Time: " . $e_time . " secs\n\n";
 
 # end of program
 exit();

@@ -1,21 +1,30 @@
 #Normal Pattern
-S:Wscript.Shell:Wscript\.Shell\(
-S:Wscript.Run:Wscript\.Run\(
-S:Wscript.Exec:Wscript\.Exec\(
-S:Shell.Application:Shell\.Application\(
-S:ShellExecute:ShellExecute\(
-S:Wscript.shell:RegRead\(
-S:VBScript.Encode:VBScript\.Encode\(
-S:Cmd.exe:Cmd\.exe
+S:Wscript.Shell:Wscript.Shell(
+S:Wscript.Run:Wscript.Run(
+S:Wscript.Exec:Wscript.Exec(
+S:Shell.Application:Shell.Application(
+S:ShellExecute:ShellExecute(
+S:Wscript.shell:RegRead(
+S:VBScript.Encode:VBScript.Encode(
+S:Cmd.exe:Cmd.exe
 
 #Malicious Pattern
-M:ShellExecute:She\"&x&\"ll\.Appl\"&x&\"ication
-M:WScript:WScr\"&x&\"ipt\.Shell
+M:ShellExecute:She"&x&"ll.Appl"&x&"ication
+M:WScript:WScr"&x&"ipt.Shell
 M:Chinese Lang:gb2312
-M:Execute Session:execute *\(? *session
-M:Execute Request:execute *\(? *request
-M:Eval Request:eval *\(? *request
-M:Common Pattern:execute *\(? *session
+M:Execute Session:execute *(? *session
+M:Execute Request:execute *(? *request
+M:Eval Request:eval *(? *request
+M:Common Pattern:execute *(? *session
 M:lake2:lake2
 M:hak520:hack520
 M:lcxMacros:lcxMacros
+M:Common Pattern:Webshell
+M:infiltrate team:404 infiltrate team
+M:AspRootkit 1:AspRootkit
+M:AspRootkit 2:BloodSword
+M:websamba:websamba
+M:PGTools 1:Persiangig
+M:PGTools 2:PGTools
+M:icesword:icesword
+M:icesword:lpl38

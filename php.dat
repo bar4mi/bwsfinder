@@ -1,17 +1,18 @@
 #Normal Pattern
-S:SYSTEM:system\(
-S:EXEC:exec\(
-S:PASSTHRU:passthru\(
-S:BASE64_DECODE:base64_decode\(
+S:SYSTEM:system(
+S:EXEC:exec(
+S:PASSTHRU:passthru(
+S:BASE64_DECODE:base64_decode(
 S:COMMON WEB SHELL:cmd
-S:COOMON WEB SHELL:phpversion\(\)
+S:PHP VERSHION:phpversion()
+S:CHINESE CHARACTER SET:gb2312
 
 #Famous Webshell
 M:c99shell:c99shell
 M:Cod3rz Shell:Cod3rZ
 M:h4ntu Shell:h4ntu
 M:NetworkFileManagerPHP:NetworkFileManagerPHP
-M:NetworkFileManagerPHP:hackru\.info
+M:NetworkFileManagerPHP:hackru.info
 M:REMOTE WEB-SHELLM:xakep
 M:NIX REMOTE WEB-SHELLM:NIX REMOTE WEB-SHELL
 M:PHVayv:PHVayv
